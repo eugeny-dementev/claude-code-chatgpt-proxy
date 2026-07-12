@@ -1,0 +1,58 @@
+--- a/litellm/litellm_core_utils/prompt_templates/factory.py
++++ b/litellm/litellm_core_utils/prompt_templates/factory.py
+@@ -88,36 +88,30 @@
+ 
+ def map_system_message_pt(messages: list) -> list:
+     """
+-    Convert 'system' message to 'user' message if provider doesn't support 'system' role.
+-
+-    Enabled via `completion(...,supports_system_message=False)`
+-
+-    If next message is a user message or assistant message -> merge system prompt into it
+-
+-    if next message is system -> append a user message instead of the system message
++    Convert system messages to user messages.
++    Handles both string content and Anthropic-style list content blocks.
+     """
++    def _to_str(content):
++        if isinstance(content, str):
++            return content
++        if isinstance(content, list):
++            return " ".join(
++                block.get("text", "") for block in content
++                if isinstance(block, dict) and block.get("type") == "text"
++            )
++        return str(content)
+ 
+     new_messages = []
+-    for i, m in enumerate(messages):
++    for m in messages:
+         if m["role"] == "system":
+-            if i < len(messages) - 1:  # Not the last message
+-                next_m = messages[i + 1]
+-                next_role = next_m["role"]
+-                if (
+-                    next_role == "user" or next_role == "assistant"
+-                ):  # Next message is a user or assistant message
+-                    # Merge system prompt into the next message
+-                    next_m["content"] = m["content"] + " " + next_m["content"]
+-                elif next_role == "system":  # Next message is a system message
+-                    # Append a user message instead of the system message
+-                    new_message = {"role": "user", "content": m["content"]}
+-                    new_messages.append(new_message)
+-            else:  # Last message
+-                new_message = {"role": "user", "content": m["content"]}
+-                new_messages.append(new_message)
+-        else:  # Not a system message
++            sys_text = _to_str(m["content"])
++            if new_messages and new_messages[-1]["role"] == "user":
++                prev_text = _to_str(new_messages[-1]["content"])
++                new_messages[-1]["content"] = sys_text + " " + prev_text
++            else:
++                new_messages.append({"role": "user", "content": sys_text})
++        else:
+             new_messages.append(m)
+-
+     return new_messages
+ 
+ 

@@ -1,0 +1,10 @@
+# venv created by setup.sh
+.venv/
+
+# never commit local secrets/state (these live in ~/.litellm, listed defensively)
+master-key.txt
+*.key
+proxy.log
+proxy.err
+
+__pycache__/

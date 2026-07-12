@@ -1,0 +1,45 @@
+# LiteLLM routing config: Claude Code model requests -> ChatGPT subscription models.
+#
+# model_name  = what Claude Code asks for
+# model       = what is actually called via your ChatGPT subscription
+#
+# supports_system_message: false  -> system messages are converted to user
+#   messages (the ChatGPT subscription backend rejects system messages).
+# drop_params: true -> silently drops Claude-specific params (e.g.
+#   context_management) the ChatGPT backend doesn't understand.
+#
+# Model names drift. If your ChatGPT dropdown shows different names, edit
+# BOTH model_name and model here, then restart the proxy.
+
+model_list:
+  - model_name: gpt-5.6-sol
+    model_info:
+      mode: responses
+    litellm_params:
+      model: chatgpt/gpt-5.6-sol
+      supports_system_message: false
+
+  - model_name: gpt-5.5
+    model_info:
+      mode: responses
+    litellm_params:
+      model: chatgpt/gpt-5.5
+      supports_system_message: false
+
+  - model_name: gpt-5.3-codex
+    model_info:
+      mode: responses
+    litellm_params:
+      model: chatgpt/gpt-5.3-codex
+      supports_system_message: false
+
+  - model_name: gpt-5.3-codex-spark
+    model_info:
+      mode: responses
+    litellm_params:
+      model: chatgpt/gpt-5.3-codex-spark
+      supports_system_message: false
+
+litellm_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  drop_params: true
