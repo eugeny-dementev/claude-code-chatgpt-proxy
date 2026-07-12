@@ -8,3 +8,4 @@ proxy.log
 proxy.err
 
 __pycache__/
+.gstack/
