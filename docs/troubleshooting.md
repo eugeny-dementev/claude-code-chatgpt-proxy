@@ -71,8 +71,8 @@ model in `~/.litellm/chatgpt-config.yaml`. Compare against the template in
 
 ## `BadRequestError: The '...-pro' model is not supported when using Codex with a ChatGPT account`
 
-Drop the `-pro` suffix in the config: use `chatgpt/gpt-5.6-sol`, not
-`chatgpt/gpt-5.6-sol-pro`.
+Drop the `-pro` suffix in the config: use `chatgpt/gpt-6-astra`, not
+`chatgpt/gpt-6-astra-pro`.
 
 ## "Model not found"
 
@@ -98,11 +98,10 @@ Requests to the proxy need the master key. The env script exports it as
 The proxy re-prompts with a new device code on startup. Restart it in a visible
 terminal and complete the browser flow again.
 
-## `gpt-5.6-sol` seems hung
+## Slow responses
 
-It's a deep reasoning model: 30 minutes of thinking is normal, over an hour
-happens on hard problems. If you want fast feedback, use `gpt-5.5` or
-`gpt-5.3-codex`.
+Reasoning duration depends on the model and task. Try `claude --model gpt-6-luna`
+for a small task and inspect the proxy logs for errors before retrying.
 
 ## Rate limits
 

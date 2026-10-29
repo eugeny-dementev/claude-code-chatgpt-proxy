@@ -12,34 +12,37 @@
 # BOTH model_name and model here, then restart the proxy.
 
 model_list:
-  - model_name: gpt-5.6-sol
+  - model_name: gpt-6-astra
     model_info:
       mode: responses
     litellm_params:
-      model: chatgpt/gpt-5.6-sol
+      model: chatgpt/gpt-6-astra
       supports_system_message: false
 
-  - model_name: gpt-5.5
+  - model_name: gpt-6.1-sol
     model_info:
       mode: responses
     litellm_params:
-      model: chatgpt/gpt-5.5
+      model: chatgpt/gpt-6.1-sol
       supports_system_message: false
 
-  - model_name: gpt-5.3-codex
+  - model_name: gpt-6.1-terra
     model_info:
       mode: responses
     litellm_params:
-      model: chatgpt/gpt-5.3-codex
+      model: chatgpt/gpt-6.1-terra
       supports_system_message: false
 
-  - model_name: gpt-5.3-codex-spark
+  - model_name: gpt-6-luna
     model_info:
       mode: responses
     litellm_params:
-      model: chatgpt/gpt-5.3-codex-spark
+      model: chatgpt/gpt-6-luna
       supports_system_message: false
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
 
 litellm_settings:
-  master_key: os.environ/LITELLM_MASTER_KEY
   drop_params: true
+  num_retries: 0

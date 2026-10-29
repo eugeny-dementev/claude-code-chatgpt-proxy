@@ -14,7 +14,10 @@ VENV_DIR="${VENV_DIR:-$REPO_DIR/.venv}"
 LITELLM_DIR="${LITELLM_DIR:-$HOME/.litellm}"
 PROXY_PORT="${PROXY_PORT:-4001}"
 
+umask 077
+unset OPENAI_API_KEY ANTHROPIC_API_KEY
+export CHATGPT_TOKEN_DIR="$LITELLM_DIR/chatgpt"
 source "$VENV_DIR/bin/activate"
 export LITELLM_MASTER_KEY="$(cat "$LITELLM_DIR/master-key.txt")"
 
-exec litellm --config "$LITELLM_DIR/chatgpt-config.yaml" --port "$PROXY_PORT"
+exec litellm --config "$LITELLM_DIR/chatgpt-config.yaml" --host 127.0.0.1 --port "$PROXY_PORT"

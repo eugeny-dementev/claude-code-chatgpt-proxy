@@ -29,7 +29,8 @@ Claude Code is redirected with nothing but environment variables
 (`ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_MODEL`, plus the
 per-tier `ANTHROPIC_DEFAULT_*_MODEL` overrides). That's why sourcing
 `scripts/claude-codex-env.sh` flips one shell to ChatGPT while every other shell
-keeps normal Anthropic billing. No config files are touched.
+keeps normal Anthropic billing. The repository scripts do not edit Claude Code settings. Existing user settings may
+override environment variables; remove conflicting settings if necessary.
 
 ## The three compatibility fixes
 
@@ -63,7 +64,7 @@ consequences:
   "Waiting for application startup". **Nothing is listening yet.** Claude Code
   started at this moment gets connection errors. Complete the browser login;
   the port opens immediately after.
-- Tokens are cached locally, so later starts don't block. If tokens expire, the
+- Tokens are cached in `~/.litellm/chatgpt/auth.json` (or `$LITELLM_DIR/chatgpt/auth.json`), so later starts don't block. If tokens expire, the
   proxy prompts again the same way: restart it in a terminal you can see.
 
 ## Why port 4001, not 4000

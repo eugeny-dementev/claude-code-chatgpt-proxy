@@ -13,10 +13,14 @@ PROXY_PORT="${PROXY_PORT:-4001}"
 export ANTHROPIC_BASE_URL="http://127.0.0.1:${PROXY_PORT}"
 export ANTHROPIC_AUTH_TOKEN="$(cat "$LITELLM_DIR/master-key.txt")"
 
-# Model mapping: what Claude Code's model tiers resolve to on ChatGPT.
-# gpt-5.6-sol may require ChatGPT Pro/Max and thinks for 30+ min on hard tasks.
-export ANTHROPIC_MODEL="gpt-5.5"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="gpt-5.5"
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="gpt-5.3-codex-spark"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="gpt-5.6-sol"
-export ANTHROPIC_DEFAULT_FABLE_MODEL="gpt-5.6-sol"
+# Only the local gateway token is used; do not inherit upstream API billing keys.
+export ANTHROPIC_API_KEY=""
+export OPENAI_API_KEY=""
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+export ANTHROPIC_MODEL="gpt-6.1-sol"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="gpt-6.1-sol"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="gpt-6-luna"
+export ANTHROPIC_SMALL_FAST_MODEL="gpt-6-luna"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="gpt-6-astra"
+export ANTHROPIC_DEFAULT_FABLE_MODEL="gpt-6-astra"
+export CLAUDE_CODE_SUBAGENT_MODEL="gpt-6.1-sol"

@@ -9,3 +9,9 @@ proxy.err
 
 __pycache__/
 .gstack/
+
+# local OAuth and generated config
+auth.json
+chatgpt/
+.env
+*.log
