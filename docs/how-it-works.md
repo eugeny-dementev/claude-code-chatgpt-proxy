@@ -46,12 +46,12 @@ sends Anthropic-shaped requests. Three things bridge the gap:
    drops them.
 
 3. **The `map_system_message_pt` patch** (`patches/map-system-message-content-blocks.patch`).
-   Fix 1 exposes a bug: LiteLLM 1.83.0's converter assumes message content is a
+   Fix 1 exposes a bug: LiteLLM 1.106.6's converter assumes message content is a
    plain string, but Claude Code sends Anthropic content blocks,
    `[{"type": "text", "text": "..."}]`. String concatenation on a list throws
    `can only concatenate list (not str) to list`. The patch rewrites the
-   converter to flatten content blocks to text first. An upstream PR exists but
-   had not landed in 1.83.0. `setup.sh` applies the patch and asserts the fixed
+   converter to flatten content blocks to text first. This patch is still
+   needed in 1.106.6. `setup.sh` applies the patch and asserts the fixed
    behavior; re-run it after any LiteLLM reinstall.
 
 ## Startup and OAuth: why the port opens late
@@ -80,8 +80,15 @@ overrides it.
 ## Why the version pin
 
 `litellm` 1.82.7 and 1.82.8 were compromised with credential-stealing malware on
-2026-03-24. This repo pins `1.83.0`, the first release built on LiteLLM's
-hardened CI/CD v2 pipeline, and `setup.sh` asserts the installed version.
+2026-03-24. This repo now pins `1.106.6` and `setup.sh` asserts the installed version.
+The upgrade replaces the class-shared Anthropic stream queue in 1.83.0 with
+per-request state. Shared queues could mix tool events across concurrent requests.
+
+The second compatibility patch backports the Responses-to-Chat changes from
+[PR #45356](https://github.com/BerriAI/litellm/pull/45356). It preserves tool
+arguments that arrive only in `response.function_call_arguments.done`, without
+duplicating arguments already streamed as deltas. Both changes are covered by
+offline tests invoked by setup.
 
 Check an install for known indicators of the compromised releases:
 
@@ -95,9 +102,9 @@ ls ~/.config/sysmon/ 2>/dev/null              # should not exist
 - **Not parity.** Claude Code's harness is tuned for Claude models. GPT models
   work for general coding, but multi-step agentic flows can behave differently,
   and Spark models handle the harness poorly.
-- **A patched dependency.** The venv's LiteLLM differs from upstream by one
-  function. Upgrading LiteLLM silently reverts the fix, which is why the version
-  is pinned and the patch lives in-repo as a plain diff you can inspect.
+- **A patched dependency.** The venv's LiteLLM differs from upstream by two
+  compatibility patches. Upgrading LiteLLM reverts these fixes, which is why the
+  version is pinned and both patches live in-repo as plain diffs you can inspect.
 - **A local daemon.** You own one more process. The proxy is localhost-only and
   authenticated with a machine-local key, but it is still a process to start
   (or wire into systemd/launchd yourself).

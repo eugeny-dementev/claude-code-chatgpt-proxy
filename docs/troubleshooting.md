@@ -112,10 +112,22 @@ meant for heavy agentic use.
 
 ```bash
 .venv/bin/python -c "import importlib.metadata as m; print(m.version('litellm'))"
-# must print exactly: 1.83.0
+# must print exactly: 1.106.6
 find ~ -name "litellm_init.pth" 2>/dev/null   # should find nothing
 ls ~/.config/sysmon/ 2>/dev/null              # should not exist
 ```
 
 Context on why this matters: [how-it-works.md](how-it-works.md), "Why the
 version pin".
+
+## Malformed streams with concurrent Claude sessions
+
+LiteLLM 1.83.0 shared an Anthropic event queue across stream instances. Concurrent
+requests could consume each other's queued events. In addition, ChatGPT tool
+arguments delivered only in a final event were lost, producing empty tool inputs.
+
+Update this fork and run `./setup.sh`, then restart your proxy. The pinned 1.106.6
+release fixes stream isolation; the included upstream backport fixes final-event
+arguments. Three concurrent Claude sessions with parallel Read calls were tested.
+There is no three-session cap configured here. A real HTTP 429 is a separate
+condition: inspect its upstream error instead of treating it as stream corruption.

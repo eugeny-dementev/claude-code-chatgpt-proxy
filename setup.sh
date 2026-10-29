@@ -15,9 +15,9 @@ LITELLM_DIR="${LITELLM_DIR:-$HOME/.litellm}"
 PROXY_PORT="${PROXY_PORT:-4001}"
 
 # SECURITY: litellm 1.82.7 and 1.82.8 were compromised with credential-stealing
-# malware (2026-03-24). 1.83.0 is the first release from the hardened CI/CD v2
-# pipeline. Do not change this pin without checking the advisory first.
-LITELLM_VERSION="1.83.0"
+# malware (2026-03-24). Never install those releases. This newer pin also fixes
+# shared stream state in the Anthropic adapter. Recheck patches before upgrading.
+LITELLM_VERSION="1.106.6"
 
 echo "==> Creating venv at $VENV_DIR (python 3.12)"
 if [ ! -x "$VENV_DIR/bin/python" ]; then
@@ -27,19 +27,19 @@ fi
 echo "==> Installing litellm[proxy]==$LITELLM_VERSION"
 uv pip install --python "$VENV_DIR/bin/python" "litellm[proxy]==$LITELLM_VERSION" "prisma==0.15.0"
 
-echo "==> Applying content-blocks patch to map_system_message_pt"
+echo "==> Applying LiteLLM compatibility patches"
 SITE_PACKAGES="$("$VENV_DIR/bin/python" -c 'import litellm, pathlib; print(pathlib.Path(litellm.__path__[0]).parent)')"
-FACTORY="$SITE_PACKAGES/litellm/litellm_core_utils/prompt_templates/factory.py"
-cp "$FACTORY" "$FACTORY.bak"
-PATCH_FILE="$REPO_DIR/patches/map-system-message-content-blocks.patch"
-if patch --dry-run -f -d "$SITE_PACKAGES" -p1 < "$PATCH_FILE" >/dev/null 2>&1; then
-  patch -f -d "$SITE_PACKAGES" -p1 < "$PATCH_FILE"
-elif patch --dry-run -R -f -d "$SITE_PACKAGES" -p1 < "$PATCH_FILE" >/dev/null 2>&1; then
-  echo "    (patch already applied)"
-else
-  echo "Compatibility patch does not match the installed LiteLLM" >&2
-  exit 1
-fi
+for PATCH_NAME in map-system-message-content-blocks chatgpt-tool-arguments-done; do
+  PATCH_FILE="$REPO_DIR/patches/$PATCH_NAME.patch"
+  if patch --dry-run -f -d "$SITE_PACKAGES" -p1 < "$PATCH_FILE" >/dev/null 2>&1; then
+    patch -f -d "$SITE_PACKAGES" -p1 < "$PATCH_FILE"
+  elif patch --dry-run -R -f -d "$SITE_PACKAGES" -p1 < "$PATCH_FILE" >/dev/null 2>&1; then
+    echo "    ($PATCH_NAME already applied)"
+  else
+    echo "Compatibility patch $PATCH_NAME does not match the installed LiteLLM" >&2
+    exit 1
+  fi
+done
 
 echo "==> Verifying patch"
 "$VENV_DIR/bin/python" - <<'EOF'
@@ -51,6 +51,10 @@ out = map_system_message_pt([
 assert out[0] == {"role": "user", "content": "be helpful"}, out
 print("    patch OK:", out[0])
 EOF
+
+echo "==> Checking stream isolation and tool argument delivery"
+"$VENV_DIR/bin/python" "$REPO_DIR/tests/check_stream_isolation.py"
+"$VENV_DIR/bin/python" "$REPO_DIR/tests/test_tool_arguments.py"
 
 echo "==> Writing config + generating local master key in $LITELLM_DIR"
 mkdir -p "$LITELLM_DIR/chatgpt"

@@ -29,14 +29,17 @@ gpt-6.1-sol / gpt-6.1-terra / gpt-6-astra / gpt-6-luna
 
 - No credentials in this repo, ever. The auth key is generated on your machine at
   setup time; ChatGPT OAuth tokens are stored by LiteLLM locally.
-- Pinned `litellm==1.83.0`. Versions 1.82.7 and 1.82.8 were compromised with
-  credential-stealing malware (2026-03-24); 1.83.0 is the first release from the
-  hardened CI/CD v2 pipeline. `setup.sh` verifies the installed version.
+- Pinned `litellm==1.106.6`, with per-request Anthropic stream queues and a
+  backport for ChatGPT tool arguments delivered in final events. `setup.sh`
+  verifies the installed version and runs offline regression tests.
 
 ## Fork changes
 
-This fork retains the original LiteLLM 1.83.0 content-block patch and updates
-model names. It also binds only to localhost, enables gateway authentication in
+This fork rebases the original content-block patch onto LiteLLM 1.106.6 and updates
+model names. It also backports the Responses-to-Chat fix from
+[LiteLLM PR #45356](https://github.com/BerriAI/litellm/pull/45356) for
+[missing tool arguments](https://github.com/BerriAI/litellm/issues/45348).
+It binds only to localhost, enables gateway authentication in
 `general_settings`, clears inherited provider API keys, stores OAuth tokens in
 an explicit private directory, installs the Prisma import dependency used by
 LiteLLM authentication, and makes setup safe to rerun.
@@ -59,7 +62,7 @@ cd claude-code-chatgpt-proxy
 ./setup.sh
 ```
 
-You should see `patch OK`, `litellm 1.83.0`, and `Setup complete.`
+You should see `patch OK`, `litellm 1.106.6`, and `Setup complete.`
 
 Step 2. Start the proxy and complete the one-time ChatGPT login:
 
@@ -186,12 +189,15 @@ hit:
 
 ## Verification
 
-Tested on macOS with Python 3.12, LiteLLM 1.83.0 and Claude Code 2.1.308:
+Tested on macOS with Python 3.12, LiteLLM 1.106.6 and Claude Code 2.1.308:
 
-- Setup completed and a second run preserved the key/config and accepted the patch.
+- Setup completed and a second run preserved the key/config and accepted both patches.
+- Three simultaneous Claude sessions each read three files through parallel tool calls and returned the correct sum.
+- Three concurrent Messages streams preserved block ordering and all tool arguments.
+- Offline tests verify stream isolation, done-only arguments, and no duplicate arguments when deltas already arrived.
 - Unauthenticated model listing was rejected; an unconfigured `openai/` route was rejected.
 - Sol completed an actual Claude Code Read-tool round trip and returned the exact file contents.
-- Luna, Terra and Astra each completed a Messages API request; Terra/Astra included system content blocks.
+- Luna completed a Messages API request after the upgrade; Terra/Astra with system content blocks were checked during the original installation.
 - The proxy listened only on `127.0.0.1` and reused an existing ChatGPT OAuth session.
 
 These are smoke checks, not validation of every Claude Code feature or long agent workflow.
@@ -203,9 +209,9 @@ These are smoke checks, not validation of every Claude Code feature or long agen
   handled by LiteLLM's ChatGPT provider on your machine.
 - The master key only authenticates localhost traffic between Claude Code and
   your own proxy. Treat `~/.litellm/` as private anyway (`master-key.txt` is 600).
-- After any LiteLLM upgrade, re-check the supply-chain advisory before unpinning
-  1.83.0, and re-apply the patch if the upstream fix hasn't landed
-  (`./setup.sh` is idempotent and safe to re-run).
+- Never install the compromised LiteLLM 1.82.7/1.82.8 releases. Review release
+  advisories and both compatibility patches before changing the current pin.
+  `./setup.sh` applies patches idempotently and checks their behavior.
 
 ## License
 
