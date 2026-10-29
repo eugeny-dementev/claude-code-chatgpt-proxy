@@ -115,6 +115,19 @@ Model names drift. Edit both `model_name` and `model` in
 Setup preserves existing config, so copy the updated template explicitly when
 upgrading an existing installation (back up your config first).
 
+## Context window warning
+
+Claude Code does not know GPT model IDs, so it otherwise assumes 200K context.
+The environment script declares `CLAUDE_CODE_MAX_CONTEXT_TOKENS=272000`, using
+a conservative shared budget across these four models. This removes the startup
+warning and keeps proactive auto-compaction enabled. It intentionally does not
+use Sol/Terra's larger 500K default window while sharing settings with Astra/Luna.
+
+See [Claude Code's documented custom-model context setting](https://code.claude.com/docs/en/model-config#correct-the-window-for-a-gateway-or-custom-model-id).
+Restart Claude Code after sourcing the updated script. `/context` should show
+272K tokens and an auto-compaction buffer. This does not change the model sent to
+LiteLLM or map GPT to a Claude model's capabilities.
+
 ## Configuration
 
 Runtime paths and port can be overridden with environment variables:

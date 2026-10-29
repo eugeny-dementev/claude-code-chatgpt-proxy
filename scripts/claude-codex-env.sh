@@ -24,3 +24,6 @@ export ANTHROPIC_SMALL_FAST_MODEL="gpt-6-luna"
 export ANTHROPIC_DEFAULT_OPUS_MODEL="gpt-6-astra"
 export ANTHROPIC_DEFAULT_FABLE_MODEL="gpt-6-astra"
 export CLAUDE_CODE_SUBAGENT_MODEL="gpt-6.1-sol"
+
+# Shared conservative context budget: the smallest default among these models.
+export CLAUDE_CODE_MAX_CONTEXT_TOKENS="${CLAUDE_CODE_MAX_CONTEXT_TOKENS:-272000}"
