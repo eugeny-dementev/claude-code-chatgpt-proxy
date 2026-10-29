@@ -115,18 +115,35 @@ Model names drift. Edit both `model_name` and `model` in
 Setup preserves existing config, so copy the updated template explicitly when
 upgrading an existing installation (back up your config first).
 
-## Context window warning
+## Per-model context budgets
 
-Claude Code does not know GPT model IDs, so it otherwise assumes 200K context.
-The environment script declares `CLAUDE_CODE_MAX_CONTEXT_TOKENS=272000`, using
-a conservative shared budget across these four models. This removes the startup
-warning and keeps proactive auto-compaction enabled. It intentionally does not
-use Sol/Terra's larger 500K default window while sharing settings with Astra/Luna.
+For the default context budgets of these models, merge
+[`config/claude-context-settings.json`](config/claude-context-settings.json) into
+your Claude user settings, preserving existing keys, or launch with the template:
 
-See [Claude Code's documented custom-model context setting](https://code.claude.com/docs/en/model-config#correct-the-window-for-a-gateway-or-custom-model-id).
-Restart Claude Code after sourcing the updated script. `/context` should show
-272K tokens and an auto-compaction buffer. This does not change the model sent to
-LiteLLM or map GPT to a Claude model's capabilities.
+```bash
+source scripts/claude-codex-env.sh
+claude --settings "$PWD/config/claude-context-settings.json"
+```
+
+| Model | Auto-compaction window |
+|---|---:|
+| `gpt-6.1-sol` | 500,000 |
+| `gpt-6.1-terra` | 500,000 |
+| `gpt-6-astra` | 272,000 |
+| `gpt-6-luna` | 272,000 |
+
+Claude Code's `CLAUDE_CODE_MAX_CONTEXT_TOKENS` is a global ceiling, not a per-model
+map. The template declares a 500K ceiling and uses native
+`modelSettings.<model>.autoCompactWindow` entries to apply each model's working
+budget when selected. Verified on Claude Code 2.1.308: `/context` displays 500K
+for Sol/Terra and 272K for Astra/Luna, including the **Auto-compact window** line.
+Automatic compaction must remain enabled for these working budgets to apply.
+
+Without the template, the shell script retains a conservative shared 272K budget.
+The explicit ceiling removes the unknown-model startup warning without mapping
+GPT IDs to Claude capabilities. Restart Claude Code after changing settings.
+See [Claude Code's per-model window documentation](https://code.claude.com/docs/en/model-config#set-the-auto-compact-window).
 
 ## Configuration
 

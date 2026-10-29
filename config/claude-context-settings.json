@@ -1,0 +1,19 @@
+{
+  "env": {
+    "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "500000"
+  },
+  "modelSettings": {
+    "gpt-6.1-sol": {
+      "autoCompactWindow": 500000
+    },
+    "gpt-6.1-terra": {
+      "autoCompactWindow": 500000
+    },
+    "gpt-6-astra": {
+      "autoCompactWindow": 272000
+    },
+    "gpt-6-luna": {
+      "autoCompactWindow": 272000
+    }
+  }
+}
